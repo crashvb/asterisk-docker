@@ -1,0 +1,35 @@
+#!/bin/bash
+
+set -e -o pipefail
+
+# Configure: asterisk
+if [[ ! -e "${EP_RUN}" ]] ; then
+	log "Configuring $(basename "${0}") for first run ..."
+
+	# Volume initialization
+	if [[ ! -f "${ASTERISK_CONFIG}/asterisk.conf" ]] ; then
+		log "Initializing data volume ..."
+		cp --no-clobber --recursive --verbose /usr/local/share/asterisk.template/config/* "${ASTERISK_CONFIG}/"
+		cp --no-clobber --preserve --recursive --verbose /usr/local/share/asterisk.template/data/* "${ASTERISK_DATA}/"
+
+		log "Deploying configuration files ..."
+		for conf in ${!ASTERISK_CONF_@}; do
+			[[ "X${!conf}" == "X" ]] && continue
+			name="${conf,,}.conf"
+			name="${name#"asterisk_conf_"}"
+			[[ "X${name}" == "X" ]] && continue
+
+			log "	${name}"
+			path="${ASTERISK_CONFIG}/${name}"
+			backup="${path}.bak"
+			[[ ! -e "${backup}" ]] && cp -p "${path}" "${backup}"
+			echo "${!conf}" | DOLLAR='$' envsubst > "${ASTERISK_CONFIG}/${name}"
+		done
+
+		log "Applying ownership and permissions ..."
+		find "${ASTERISK_CONFIG}" "${ASTERISK_DATA}" \( \! -user "${ASTERISK_UNAME}" -o \! -group "${ASTERISK_GNAME}" \) -exec chown "${ASTERISK_UNAME}:${ASTERISK_GNAME}" {} \;
+	else
+		log "Skipping data volume initialization ..."
+	fi
+fi
+

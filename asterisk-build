@@ -1,0 +1,85 @@
+#! /bin/bash
+
+set -e -o pipefail
+
+# https://launchpadlibrarian.net/686757201/buildlog_ubuntu-mantic-amd64.asterisk_1%3A20.4.0~dfsg+~cs6.13.40431414-2_BUILDING.txt.gz
+
+git clone --depth 1 --branch 20.4.0 https://github.com/asterisk/asterisk.git /usr/src/asterisk
+
+cd /usr/src/asterisk
+
+# https://usecallmanager.nz/patching-asterisk.html
+# You're awesome, Gareth Palmer and Josh Byrnes!
+usecallmanager="cisco-usecallmanager-20.4.0.patch"
+wget "https://raw.githubusercontent.com/usecallmanagernz/patches/master/asterisk/${usecallmanager}"
+sha256sum "${usecallmanager}"
+patch --strip=1 < "${usecallmanager}"
+
+./configure \
+	--build=x86_64-linux-gnu \
+	--disable-asteriskssl \
+	--disable-dependency-tracking \
+	--disable-maintainer-mode \
+	--disable-option-checking \
+	--disable-silent-rules \
+	--includedir=\${prefix}/include \
+	--infodir=\${prefix}/share/info \
+	--libdir=\${prefix}/lib/x86_64-linux-gnu \
+	--localstatedir=/var \
+	--mandir=\${prefix}/share/man \
+	--prefix=/usr \
+	--runstatedir=/run \
+	--sysconfdir=/etc \
+	--with-gsm \
+	--with-resample \
+	--without-pwlib \
+	--without-sdl
+
+make menuselect.makeopts
+
+for module in \
+	app_macro \
+	app_voicemail_imap \
+	app_voicemail_odbc \
+	res_config_mysql \
+	chan_mobile \
+	chan_ooh323 \
+	chan_sip \
+	aelparse \
+	format_mp3 \
+	smsq; do \
+	menuselect/menuselect --enable $module \
+	menuselect.makeopts; \
+done
+for module in \
+	BUILD_NATIVE; do \
+	menuselect/menuselect --disable $module \
+	menuselect.makeopts; \
+done
+
+make \
+	-j $(nproc) \
+	ASTDATADIR=/usr/share/asterisk \
+	ASTVARRUNDIR=/var/run/asterisk \
+	AST_FORTIFY_SOURCE= \
+	DEBUG= \
+	NOISY_BUILD=yes \
+	OPTIMIZE=
+
+contrib/scripts/get_mp3_source.sh
+
+mkdir /build
+
+make \
+	-j $(nproc) \
+	install \
+	ASTDATADIR=/usr/share/asterisk \
+	ASTVARRUNDIR=/var/run/asterisk \
+	AST_FORTIFY_SOURCE= \
+	DEBUG= \
+	DESTDIR=/build \
+	NOISY_BUILD=yes \
+	OPTIMIZE= \
+	-j 1 \
+	config \
+	samples
