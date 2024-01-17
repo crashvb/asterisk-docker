@@ -44,7 +44,7 @@ The embedded entrypoint script is located at `/etc/entrypoint.d/asterisk` and pe
 ### Exposed Ports
 
 * `5060/udp` - insecure SIP gateway.
-* `5160/udp` - secure SIP gateway.
+* `5061/udp` - secure SIP gateway.
 * `17700:17710/udp` - RTP ports.
 
 ### Volumes
