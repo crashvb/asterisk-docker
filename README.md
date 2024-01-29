@@ -50,6 +50,7 @@ The embedded entrypoint script is located at `/etc/entrypoint.d/asterisk` and pe
 ### Volumes
 
 * `/etc/asterisk` - asterisk configuration directory.
+* `/usr/share/asterisk/sounds/en/custom` - asterisk custom sounds directory.
 * `/var/lib/asterisk` - asterisk data directory.
 
 ## Development

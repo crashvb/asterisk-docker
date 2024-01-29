@@ -11,6 +11,7 @@ if [[ ! -e "${EP_RUN}" ]] ; then
 		log "Initializing data volume ..."
 		cp --no-clobber --recursive --verbose /usr/local/share/asterisk.template/config/* "${ASTERISK_CONFIG}/"
 		cp --no-clobber --preserve --recursive --verbose /usr/local/share/asterisk.template/data/* "${ASTERISK_DATA}/"
+		cp --no-clobber --preserve --recursive --verbose /usr/local/share/asterisk.template/sounds/* "${ASTERISK_SOUNDS}/"
 
 		log "Deploying configuration files ..."
 		for conf in ${!ASTERISK_CONF_@}; do
@@ -27,7 +28,7 @@ if [[ ! -e "${EP_RUN}" ]] ; then
 		done
 
 		log "Applying ownership and permissions ..."
-		find "${ASTERISK_CONFIG}" "${ASTERISK_DATA}" \( \! -user "${ASTERISK_UNAME}" -o \! -group "${ASTERISK_GNAME}" \) -exec chown "${ASTERISK_UNAME}:${ASTERISK_GNAME}" {} \;
+		find "${ASTERISK_CONFIG}" "${ASTERISK_DATA}" "${ASTERISK_SOUNDS}" \( \! -user "${ASTERISK_UNAME}" -o \! -group "${ASTERISK_GNAME}" \) -exec chown "${ASTERISK_UNAME}:${ASTERISK_GNAME}" {} \;
 	else
 		log "Skipping data volume initialization ..."
 	fi

@@ -27,14 +27,15 @@ RUN docker-apt libedit2 libjansson4 libresample1 libsqlite3-0 libssl3 libxml2 uu
 
 # Configure: asterisk
 # https://salsa.debian.org/pkg-voip-team/asterisk/-/blob/debian/latest/debian/asterisk.postinst
-ENV ASTERISK_CONFIG=/etc/asterisk ASTERISK_DATA=/var/lib/asterisk ASTERISK_GID=700 ASTERISK_GNAME=asterisk ASTERISK_MAX_CALLS=25 ASTERISK_UID=700 ASTERISK_UNAME=asterisk
+ENV ASTERISK_CONFIG=/etc/asterisk ASTERISK_DATA=/var/lib/asterisk ASTERISK_GID=700 ASTERISK_GNAME=asterisk ASTERISK_MAX_CALLS=25 ASTERISK_SOUNDS=/usr/share/asterisk/sounds ASTERISK_UID=700 ASTERISK_UNAME=asterisk
 RUN groupadd --gid=${ASTERISK_GID} ${ASTERISK_GNAME} && \
 	useradd --gid=${ASTERISK_GID} --groups audio,dialout --home-dir=${ASTERISK_DATA} --no-create-home --shell=/usr/sbin/nologin --uid=${ASTERISK_UID} ${ASTERISK_UNAME} && \
 	chown --recursive ${ASTERISK_UID}:${ASTERISK_GID} ${ASTERISK_CONFIG} ${ASTERISK_DATA} /var/log/asterisk /var/spool/asterisk && \
 	install --directory --group=root --mode=0775 /usr/local/share/asterisk/sounds /usr/local/share/asterisk.template && \
 	cp --preserve ${ASTERISK_CONFIG}/asterisk.conf ${ASTERISK_CONFIG}/asterisk.conf.dist && \
 	mv ${ASTERISK_CONFIG} /usr/local/share/asterisk.template/config && \
-	mv ${ASTERISK_DATA} /usr/local/share/asterisk.template/data
+	mv ${ASTERISK_DATA} /usr/local/share/asterisk.template/data && \
+	mv ${ASTERISK_SOUNDS} /usr/local/share/asterisk.template/sounds
 
 # Configure: supervisor
 COPY supervisord.asterisk.conf /etc/supervisor/conf.d/asterisk.conf
@@ -48,4 +49,4 @@ COPY healthcheck.asterisk /etc/healthcheck.d/asterisk
 
 EXPOSE 5060/udp 5061/udp 17700-17710/udp
 
-VOLUME ${ASTERISK_CONFIG} ${ASTERISK_DATA}
+VOLUME ${ASTERISK_CONFIG} ${ASTERISK_DATA} ${ASTERISK_SOUNDS}
