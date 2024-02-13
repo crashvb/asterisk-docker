@@ -47,6 +47,6 @@ COPY entrypoint.asterisk /etc/entrypoint.d/asterisk
 # Configure: healthcheck
 COPY healthcheck.asterisk /etc/healthcheck.d/asterisk
 
-EXPOSE 5060/udp 5061/udp 17700-17710/udp
+EXPOSE 5060/udp 5061/udp 17700-17800/udp
 
 VOLUME ${ASTERISK_CONFIG} ${ASTERISK_DATA} ${ASTERISK_SOUNDS}
